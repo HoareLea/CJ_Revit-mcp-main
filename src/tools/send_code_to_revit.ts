@@ -9,17 +9,14 @@ export function registerSendCodeToRevitTool(server: McpServer) {
     {
       code: z
         .string()
-        .describe(
-          "The C# code to execute in Revit. This code will be inserted into the Execute method of a template with access to Document and parameters."
-        ),
+        .min(1, "Code cannot be empty")
+        .describe("The C# code to execute in Revit. This code will be inserted into the Execute method of a template with access to Document and parameters."),
       parameters: z
-        .array(z.any())
+        .array(z.string())
         .optional()
-        .describe(
-          "Optional execution parameters that will be passed to your code"
-        ),
+        .describe("Optional execution parameters that will be passed to your code"),
     },
-    async (args, extra) => {
+    async (args) => {
       const params = {
         code: args.code,
         parameters: args.parameters || [],
@@ -34,22 +31,19 @@ export function registerSendCodeToRevitTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Code execution successful!\nResult: ${JSON.stringify(
-                response,
-                null,
-                2
-              )}`,
+              text: `Code execution successful!\nResult: ${JSON.stringify(response, null, 2)}`,
             },
           ],
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Code execution error:", errorMessage);
+
         return {
           content: [
             {
               type: "text",
-              text: `Code execution failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: `Code execution failed: ${errorMessage}`,
             },
           ],
         };

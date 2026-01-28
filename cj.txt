@@ -1,0 +1,2 @@
+run server
+node build/index.js
